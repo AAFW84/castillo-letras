@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Castillo de las Letras</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Andika:wght@400;700&family=Grandstander:wght@600;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* Una columna de móvil centrada: mapa de reinos arriba, lección a pantalla completa abajo. */
+  --bg:#FBF4FF; --card:#FFFFFF; --ink:#3A1646; --ink-soft:#7A5C86;
+  --rose:#E0457B; --rose-d:#B82F61; --gold:#F5B52E; --mint:#2FB890; --sky:#6C63F0; --line:#EBDDF3;
+  --display:'Grandstander','Trebuchet MS',system-ui,sans-serif;
+  --body:'Andika','Trebuchet MS',system-ui,sans-serif;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:18px;line-height:1.4;-webkit-tap-highlight-color:transparent}
+#app{min-height:100%;max-width:560px;margin:0 auto;padding:16px;display:flex;flex-direction:column;gap:14px}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,a:focus-visible,input:focus-visible{outline:4px solid var(--sky);outline-offset:2px}
+h1,h2,h3{font-family:var(--display);margin:0;line-height:1.1;text-wrap:balance}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:56px;padding:0 26px;border:0;border-radius:20px;background:var(--rose);color:#fff;font:800 1.2rem var(--display);box-shadow:0 5px 0 var(--rose-d);text-decoration:none}
+.btn:active{transform:translateY(3px);box-shadow:0 2px 0 var(--rose-d)}
+.btn.alt{background:#fff;color:var(--ink);box-shadow:0 5px 0 var(--line);border:3px solid var(--line)}
+.btn.mint{background:var(--mint);box-shadow:0 5px 0 #1F8A6C}
+.btn.sm{min-height:44px;padding:0 16px;font-size:1rem}
+.top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.brand{display:flex;align-items:center;gap:10px}
+.brand svg{width:46px;height:36px}
+.brand h1{font-size:1.35rem}
+.gems{background:#fff;border:3px solid var(--line);border-radius:999px;padding:4px 14px;font:800 1.1rem var(--display)}
+.hero{background:var(--ink);color:#fff;border-radius:28px;padding:20px;display:flex;flex-direction:column;gap:10px}
+.hero small{opacity:.8;font-size:.95rem}
+.hero h2{font-size:1.9rem}
+.hero .btn{align-self:flex-start;margin-top:6px}
+.bar{height:12px;border-radius:99px;background:rgba(255,255,255,.25);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--gold);border-radius:99px}
+.reino{background:var(--card);border-radius:26px;padding:16px;border:3px solid var(--line)}
+.reino h3{font-size:1.2rem;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.reino h3 i{width:14px;height:14px;border-radius:50%;display:inline-block}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(78px,1fr));gap:10px}
+.node{aspect-ratio:1;border-radius:22px;border:3px solid var(--line);background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font:800 1.5rem var(--display);position:relative;padding:0}
+.node small{font:400 .8rem var(--body);color:var(--gold);letter-spacing:1px;min-height:1em}
+.node .d{position:absolute;top:4px;left:8px;font:700 .7rem var(--body);color:var(--ink-soft)}
+.node.done{background:color-mix(in srgb,var(--c) 14%,#fff);border-color:var(--c)}
+.node.cur{border-color:var(--c);box-shadow:0 0 0 4px color-mix(in srgb,var(--c) 30%,transparent);animation:pulse 1.8s ease-in-out infinite}
+.node.lock{opacity:.4}
+.foot{display:flex;justify-content:center;padding:6px 0 18px}
+.notice{background:#FFF1D6;border-radius:16px;padding:10px 14px;font-size:.95rem}
+
+.tabs{display:flex;gap:8px}
+.tab{flex:1;min-height:56px;border-radius:18px;border:3px solid var(--line);background:#fff;font:800 1rem var(--display);padding:6px 8px;line-height:1.15}
+.tab small{display:block;font:400 .78rem var(--body);color:var(--ink-soft)}
+.tab.on{background:var(--ink);border-color:var(--ink);color:#fff}
+.tab.on small{color:#E9D9F2}
+.ask{flex:none;width:56px;height:56px;border-radius:50%;border:0;background:var(--sky);color:#fff;font-size:1.6rem;box-shadow:0 5px 0 #4A42C4;padding:0}
+.ask:active{transform:translateY(3px);box-shadow:0 2px 0 #4A42C4}
+.vrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;border:3px solid var(--line);border-radius:16px;padding:8px 10px}
+.vrow.on{border-color:var(--mint);background:#EEFBF6}
+.vrow span{flex:1;min-width:140px;font-size:.95rem}
+textarea.code{width:100%;min-height:84px;border:3px solid var(--line);border-radius:14px;padding:10px;font:400 .85rem/1.3 monospace;color:var(--ink);background:#fff;resize:vertical}
+.ok-msg{color:var(--mint);font-weight:700}
+.err-msg{color:var(--rose-d);font-weight:700}
+.lessonbar{display:flex;align-items:center;gap:10px}
+.back{width:48px;height:48px;border-radius:16px;border:3px solid var(--line);background:#fff;font-size:1.4rem}
+.dots{display:flex;gap:6px;flex:1}
+.dots i{flex:1;height:10px;border-radius:99px;background:var(--line)}
+.dots i.on{background:var(--rose)}
+.dots i.now{background:var(--gold)}
+.lt{font:800 1.05rem var(--display)}
+.stage{background:var(--card);border-radius:28px;padding:18px;border:3px solid var(--line);min-height:380px;display:flex;flex-direction:column;gap:14px;align-items:center;text-align:center}
+.gh{width:100%;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.gt{font:800 1.25rem var(--display);text-align:left;flex:1}
+.gr{background:var(--bg);border-radius:99px;padding:2px 12px;font-size:.9rem;white-space:nowrap}
+.hint{margin:0;color:var(--ink-soft);font-size:1rem}
+.fb{margin:0;min-height:1.5em;font:800 1.15rem var(--display);color:var(--mint)}
+.spk{border:3px solid var(--line);background:var(--bg);border-radius:18px;min-height:52px;padding:0 20px;font:800 1.05rem var(--display)}
+.tiles,.slots,.eq{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;align-items:center}
+.tile{min-width:84px;height:84px;padding:0 14px;border:3px solid var(--line);border-radius:22px;background:#fff;color:var(--ink);font:700 2.4rem var(--body);box-shadow:0 5px 0 var(--line);display:inline-flex;align-items:center;justify-content:center}
+button.tile:active{transform:translateY(3px);box-shadow:0 2px 0 var(--line)}
+.tile.good{background:#DDF6EC;border-color:var(--mint);box-shadow:0 5px 0 #A9E5D0}
+.tile.used{opacity:.35}
+.tile.fix{background:var(--rose);border-color:var(--rose-d);color:#fff;box-shadow:0 5px 0 var(--rose-d)}
+.tile.slot{background:#F6EEFB;border-style:dashed;color:var(--ink-soft);box-shadow:none}
+.tile.slot.filled{background:#fff;border-style:solid;color:var(--ink);box-shadow:0 5px 0 var(--line)}
+.tile.sel{border-color:var(--sky)}
+.eq b{font:800 2rem var(--display)}
+.pic{font-size:5.5rem;line-height:1}
+.word{font:700 3rem var(--body);letter-spacing:2px}
+.sy.c0{color:var(--rose)}.sy.c1{color:var(--sky)}
+.opts{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.opt{width:92px;height:92px;border-radius:22px;border:3px solid var(--line);background:#fff;font-size:3rem;box-shadow:0 5px 0 var(--line);padding:0}
+.opt.good{background:#DDF6EC;border-color:var(--mint)}
+.card{width:100%;aspect-ratio:1;border-radius:18px;border:3px solid var(--line);background:var(--sky);color:#fff;font:700 2rem var(--body);padding:0}
+.card.up{background:#fff;color:var(--ink)}
+.card.ok{background:#DDF6EC;border-color:var(--mint);color:var(--ink)}
+.mem{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;width:100%}
+.line{width:100%;display:flex;align-items:center;gap:10px;text-align:left;background:var(--bg);border-radius:18px;padding:12px 14px;font:700 1.35rem var(--body)}
+.line span{flex:1}
+.line button{flex:none;width:48px;height:48px;border-radius:14px;border:3px solid var(--line);background:#fff}
+.mission{background:#FFF7DD;border:3px solid var(--gold);border-radius:22px;padding:16px;width:100%;font-size:1.1rem}
+.stars{font-size:3rem;color:var(--gold);letter-spacing:6px}
+.stars .off{color:var(--line)}
+.row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.panel{background:var(--card);border:3px solid var(--line);border-radius:26px;padding:18px;display:flex;flex-direction:column;gap:12px}
+.panel ul{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px}
+.panel p{margin:0}
+input.name{width:100%;min-height:60px;border:3px solid var(--line);border-radius:18px;padding:0 16px;font:700 1.5rem var(--body);text-align:center;color:var(--ink);background:#fff}
+.big-crown{width:120px;height:92px}
+.conf{position:fixed;top:-40px;animation:fall 2.2s ease-in forwards;pointer-events:none;z-index:50}
+.shake{animation:shake .4s}
+.pop{animation:pop .5s}
+@keyframes fall{to{transform:translateY(110vh) rotate(260deg);opacity:.8}}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+@keyframes pulse{50%{transform:scale(1.06)}}
+@keyframes pop{40%{transform:scale(1.2)}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}}
+@media (max-width:380px){.tile{min-width:72px;height:72px;font-size:2rem}.word{font-size:2.4rem}.opt{width:80px;height:80px}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+/* ---------- Datos ---------- */
+const VOW=['a','e','i','o','u'];
+const cv=(c,v)=>(v||VOW).map(x=>c+x);
+const REINOS=[
+ {n:'Valle de las Vocales',col:'#E0457B',ls:[
+  {id:'vo',t:'Las vocales',lab:'Aa',type:'vowel',sy:VOW},
+  {id:'m',t:'La letra M',lab:'Mm',c:'m',sy:cv('m')},
+  {id:'p',t:'La letra P',lab:'Pp',c:'p',sy:cv('p')},
+  {id:'s',t:'La letra S',lab:'Ss',c:'s',sy:cv('s')},
+  {id:'b1',t:'Jefe del valle',lab:'👑',boss:true,story:['Mamá me ama.','Papá me mima.','Mi mesa, mi sopa, mi oso.']}]},
+ {n:'Bosque Encantado',col:'#6C63F0',ls:[
+  {id:'l',t:'La letra L',lab:'Ll',c:'l',sy:cv('l')},
+  {id:'t',t:'La letra T',lab:'Tt',c:'t',sy:cv('t')},
+  {id:'n',t:'La letra N',lab:'Nn',c:'n',sy:cv('n')},
+  {id:'d',t:'La letra D',lab:'Dd',c:'d',sy:cv('d')},
+  {id:'b2',t:'Jefe del bosque',lab:'👑',boss:true,story:['La luna sale.','Mi mono toma sopa.','La nena toma la lupa.']}]},
+ {n:'Lago de Cristal',col:'#2FB890',ls:[
+  {id:'c',t:'La letra C',lab:'Cc',c:'c',sy:['ca','co','cu']},
+  {id:'b',t:'La letra B',lab:'Bb',c:'b',sy:cv('b')},
+  {id:'v',t:'La letra V',lab:'Vv',c:'v',sy:cv('v')},
+  {id:'f',t:'La letra F',lab:'Ff',c:'f',sy:cv('f')},
+  {id:'b3',t:'Jefe del lago',lab:'👑',boss:true,story:['La vaca come uva.','Mi bebé besa a mamá.','Mi casa, mi cama, mi vela.']}]},
+ {n:'Castillo de las Princesas',col:'#F5B52E',ls:[
+  {id:'r',t:'La letra R',lab:'Rr',c:'r',sy:cv('r')},
+  {id:'rr',t:'La RR',lab:'RR',c:'rr',sy:cv('rr')},
+  {id:'nn',t:'La letra Ñ',lab:'Ññ',c:'ñ',sy:cv('ñ')},
+  {id:'ch',t:'La CH',lab:'Ch',c:'ch',sy:cv('ch')},
+  {id:'ll',t:'La LL',lab:'Ll',c:'ll',sy:cv('ll')},
+  {id:'b4',t:'Jefe del castillo',lab:'👑',boss:true,story:['La niña usa la corona.','La sirena toma leche.','La varita de la dama.']}]},
+ /* ---- PARTE 2 ---- */
+ {part:2,n:'Jardín de las Hadas',col:'#D9467A',ls:[
+  {id:'g',t:'La letra G',lab:'Gg',c:'g',sy:cv('g',['a','o','u'])},
+  {id:'gu',t:'GUE y GUI',lab:'Gu',c:'gu',sy:['gue','gui']},
+  {id:'q',t:'QUE y QUI',lab:'Qq',c:'qu',sy:['que','qui']},
+  {id:'j',t:'La letra J',lab:'Jj',c:'j',sy:cv('j')},
+  {id:'b5',t:'Jefe del jardín',lab:'👑',boss:true,story:['El gato come queso.','Mi conejo mira la jirafa.','La abeja mira la oveja.']}]},
+ {part:2,n:'Montaña de las Estrellas',col:'#3E8EDE',ls:[
+  {id:'z',t:'La letra Z',lab:'Zz',c:'z',sy:cv('z')},
+  {id:'ce',t:'CE y CI',lab:'Ce',c:'c',sy:['ce','ci']},
+  {id:'ge',t:'GE y GI',lab:'Ge',c:'g',sy:['ge','gi']},
+  {id:'h',t:'La H que no suena',lab:'Hh',c:'h',sy:cv('h')},
+  {id:'y',t:'La letra Y',lab:'Yy',c:'y',sy:cv('y')},
+  {id:'b6',t:'Jefe de la montaña',lab:'👑',boss:true,story:['Mamá hace helado.','La payasa usa zapato.','Mi hada toma zumo.']}]},
+ {part:2,n:'Palacio de las Sílabas Grandes',col:'#8A4FD6',ls:[
+  {id:'tr',t:'TRA TRE TRI TRO TRU',lab:'Tr',c:'tr',sy:cv('tr')},
+  {id:'br',t:'BRA BRE BRI BRO BRU',lab:'Br',c:'br',sy:cv('br')},
+  {id:'pl',t:'PLA PLE PLI PLO PLU',lab:'Pl',c:'pl',sy:cv('pl')},
+  {id:'bl',t:'BLA BLE BLI BLO BLU',lab:'Bl',c:'bl',sy:cv('bl')},
+  {id:'gr',t:'GRA GRE GRI GRO GRU',lab:'Gr',c:'gr',sy:cv('gr')},
+  {id:'fr',t:'FRA FRE FRI FRO FRU',lab:'Fr',c:'fr',sy:cv('fr')},
+  {id:'b7',t:'Jefe del palacio',lab:'👑',boss:true,story:['La cebra mira mi libro.','Mi tigre toma fresa.','Mi blusa, mi abrigo, mi pluma.']}]}
+];
+REINOS.forEach((k,i)=>{if(!k.part)k.part=1;});
+const WORDS=[
+ ['mamá','ma-má','👩'],['mimo','mi-mo','🥰'],['papá','pa-pá','👨'],['mapa','ma-pa','🗺️'],
+ ['sopa','so-pa','🍲'],['sapo','sa-po','🐸'],['oso','o-so','🐻'],
+ ['ola','o-la','🌊'],['sala','sa-la','🛋️'],['lupa','lu-pa','🔍'],
+ ['moto','mo-to','🏍️'],['pato','pa-to','🦆'],['tomate','to-ma-te','🍅'],['pelota','pe-lo-ta','⚽'],
+ ['luna','lu-na','🌙'],['mano','ma-no','✋'],['mono','mo-no','🐒'],
+ ['dedo','de-do','👆'],['dado','da-do','🎲'],['dama','da-ma','👸'],
+ ['casa','ca-sa','🏠'],['cama','ca-ma','🛏️'],['coco','co-co','🥥'],['cometa','co-me-ta','☄️'],['taco','ta-co','🌮'],
+ ['bota','bo-ta','👢'],['boca','bo-ca','👄'],['beso','be-so','💋'],['nube','nu-be','☁️'],['bebé','be-bé','👶'],
+ ['vaca','va-ca','🐄'],['vela','ve-la','🕯️'],['uva','u-va','🍇'],
+ ['foto','fo-to','📷'],['café','ca-fé','☕'],
+ ['rosa','ro-sa','🌹'],['pera','pe-ra','🍐'],['rata','ra-ta','🐀'],['ropa','ro-pa','👗'],['corona','co-ro-na','👑'],
+ ['varita','va-ri-ta','🪄'],['mariposa','ma-ri-po-sa','🦋'],['sirena','si-re-na','🧜‍♀️'],
+ ['perro','pe-rro','🐶'],['carro','ca-rro','🚗'],
+ ['niña','ni-ña','👧'],['piña','pi-ña','🍍'],['uña','u-ña','💅'],['moño','mo-ño','🎀'],
+ ['leche','le-che','🥛'],['noche','no-che','🌃'],['chile','chi-le','🌶️'],
+ ['llave','lla-ve','🔑'],['pollo','po-llo','🐔'],['silla','si-lla','💺'],['caballo','ca-ba-llo','🐴'],
+ ['gato','ga-to','🐱'],['gota','go-ta','💧'],['lago','la-go','🏞️'],['gallo','ga-llo','🐓'],['gusano','gu-sa-no','🐛'],['mago','ma-go','🧙'],['regalo','re-ga-lo','🎁'],
+ ['águila','á-gui-la','🦅'],['guiso','gui-so','🥘'],
+ ['queso','que-so','🧀'],['raqueta','ra-que-ta','🎾'],
+ ['jirafa','ji-ra-fa','🦒'],['ojo','o-jo','👁️'],['caja','ca-ja','📦'],['ajo','a-jo','🧄'],['oveja','o-ve-ja','🐑'],['abeja','a-be-ja','🐝'],['conejo','co-ne-jo','🐰'],
+ ['zapato','za-pa-to','👟'],['zorro','zo-rro','🦊'],['zumo','zu-mo','🧃'],
+ ['cebolla','ce-bo-lla','🧅'],['cereza','ce-re-za','🍒'],['cocina','co-ci-na','🍳'],['cine','ci-ne','🎬'],
+ ['gelatina','ge-la-ti-na','🍮'],['página','pá-gi-na','📄'],
+ ['hada','ha-da','🧚'],['hoja','ho-ja','🍃'],['helado','he-la-do','🍦'],['hilo','hi-lo','🧵'],['humo','hu-mo','💨'],
+ ['joya','jo-ya','💎'],['payaso','pa-ya-so','🤡'],['rayo','ra-yo','⚡'],['yate','ya-te','🛥️'],
+ ['metro','me-tro','🚇'],['letra','le-tra','🔤'],['trigo','tri-go','🌾'],['teatro','te-a-tro','🎭'],
+ ['libro','li-bro','📖'],['cobra','co-bra','🐍'],['cebra','ce-bra','🦓'],['abrigo','a-bri-go','🧥'],
+ ['plato','pla-to','🍽️'],['pluma','plu-ma','🪶'],['playa','pla-ya','🏖️'],['plátano','plá-ta-no','🍌'],
+ ['blusa','blu-sa','👚'],['bloque','blo-que','🧱'],['cable','ca-ble','🔌'],
+ ['tigre','ti-gre','🐯'],['grillo','gri-llo','🦗'],['alegre','a-le-gre','😄'],
+ ['fresa','fre-sa','🍓'],['fruta','fru-ta','🍎']
+].map(a=>({w:a[0],s:a[1].split('-'),e:a[2]}));
+const INIT=[['abeja','🐝','a'],['estrella','⭐','e'],['isla','🏝️','i'],['oso','🐻','o'],['uva','🍇','u'],['araña','🕷️','a'],['elefante','🐘','e'],['imán','🧲','i'],['ola','🌊','o'],['unicornio','🦄','u']].map(a=>({w:a[0],e:a[1],v:a[2]}));
+const PRAISE=['¡Muy bien!','¡Genial!','¡Eso es!','¡Brillante!','¡Excelente!','¡Lo lograste!'];
+
+const nz=s=>s.replace(/á/g,'a').replace(/é/g,'e').replace(/í/g,'i').replace(/ó/g,'o').replace(/ú/g,'u');
+const FLAT=[];const KNOWN=[];const KSTART=[];
+REINOS.forEach((k,ki)=>{
+  const u=[];
+  k.ls.forEach((l,j)=>{ l.ki=ki; l.col=k.col; if(j===0)KSTART[ki]=FLAT.length; FLAT.push(l); if(!l.boss)l.sy.forEach(s=>{if(!u.includes(s))u.push(s);}); });
+  k.ls[k.ls.length-1].sy=u;
+});
+{const set=new Set();FLAT.forEach((l,i)=>{l.sy.forEach(s=>set.add(nz(s)));KNOWN[i]=new Set(set);});}
+const knows=(w,set)=>w.s.every(x=>set.has(nz(x)));
+function poolFor(i){
+  const l=FLAT[i],k=KNOWN[i];
+  const all=WORDS.filter(w=>knows(w,k));
+  if(l.boss){const prev=KSTART[l.ki]>0?KNOWN[KSTART[l.ki]-1]:new Set();const kw=all.filter(w=>!knows(w,prev));const o=kw.length?kw:all;o.neuN=o.length;return o;}
+  const prev=i>0?KNOWN[i-1]:new Set();
+  const neu=all.filter(w=>!knows(w,prev));
+  const rest=all.filter(w=>!neu.includes(w));
+  const out=neu.concat(shuffle(rest).slice(0,2));out.neuN=neu.length;return out;
+}
+
+/* ---------- Utilidades ---------- */
+const $=s=>document.querySelector(s);
+const app=document.getElementById('app');
+function el(t,c,h){const e=document.createElement(t);if(c)e.className=c;if(h!=null)e.innerHTML=h;return e;}
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]];}return a;}
+const fb=t=>{const f=$('#fb');if(f)f.textContent=t;};
+const rnd=a=>a[Math.random()*a.length|0];
+const CROWN='<svg viewBox="0 0 64 48" aria-hidden="true"><path d="M6 40 L10 12 L24 26 L32 8 L40 26 L54 12 L58 40 Z" fill="#F5B52E" stroke="#B9801A" stroke-width="3" stroke-linejoin="round"/><circle cx="10" cy="10" r="4" fill="#E0457B"/><circle cx="32" cy="6" r="4" fill="#6C63F0"/><circle cx="54" cy="10" r="4" fill="#2FB890"/><rect x="6" y="40" width="52" height="6" rx="3" fill="#B9801A"/></svg>';
+
+/* ---------- Progreso guardado ---------- */
+const KEY='castillo-letras-v1';
+let P={name:'',done:{},gems:0,all:false,voice:'',rate:0.7};
+try{const r=localStorage.getItem(KEY);if(r)P=Object.assign(P,JSON.parse(r));}catch(e){}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(P));}catch(e){}}
+
+/* ---------- Voz ---------- */
+let VOICE=null;
+const HAS_VOICE='speechSynthesis' in window;
+const esVoices=()=>{try{return speechSynthesis.getVoices().filter(v=>/^es/i.test(v.lang));}catch(e){return[];}};
+function initVoice(){try{
+  const vs=speechSynthesis.getVoices();
+  if(P.voice){const v=vs.find(v=>v.name===P.voice);if(v){VOICE=v;return;}}
+  const order=['es-pa','es-mx','es-us','es-419','es-co','es-ar','es-es'];
+  for(const l of order){const v=vs.find(v=>v.lang.replace('_','-').toLowerCase()===l);if(v){VOICE=v;return;}}
+  VOICE=vs.find(v=>/^es/i.test(v.lang))||null;}catch(e){}}
+let voiceHook=null;
+if(HAS_VOICE){speechSynthesis.onvoiceschanged=()=>{initVoice();if(voiceHook)voiceHook();};initVoice();}
+function mkUtter(t,mult){const u=new SpeechSynthesisUtterance(t);u.lang=VOICE?VOICE.lang:'es-MX';if(VOICE)u.voice=VOICE;u.rate=Math.max(.3,(P.rate||.7)*(mult||1));u.pitch=1;return u;}
+function say(t,mult){try{if(!HAS_VOICE)return;speechSynthesis.cancel();speechSynthesis.speak(mkUtter(t,mult));}catch(e){}}
+function sayQ(list){try{if(!HAS_VOICE)return;speechSynthesis.cancel();list.forEach(x=>speechSynthesis.speak(mkUtter(x[0],x[1])));}catch(e){}}
+/* Primer hablado de un paso: instrucción y luego el sonido */
+function speakFirst(t,mult){if(ctx&&ctx.intro){const i=ctx.intro;ctx.intro=null;sayQ([[i,1],[t,mult]]);}else say(t,mult);}
+
+function burst(n){
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  const f=['✨','💖','👑','⭐','🌸'];
+  for(let i=0;i<(n||14);i++){const s=el('span','conf',f[i%f.length]);s.style.left=(Math.random()*95)+'vw';s.style.animationDelay=(Math.random()*.4)+'s';s.style.fontSize=(18+Math.random()*18)+'px';document.body.appendChild(s);setTimeout(()=>s.remove(),2700);}
+}
+
+/* ---------- Pantallas ---------- */
+const doneCount=()=>FLAT.filter(l=>P.done[l.id]).length;
+const nextIdx=()=>{const i=FLAT.findIndex(l=>!P.done[l.id]);return i<0?FLAT.length-1:i;};
+const unlocked=i=>P.all||i===0||!!P.done[FLAT[i-1].id]||!!P.done[FLAT[i].id];
+const starStr=n=>'★'.repeat(n)+'☆'.repeat(3-n);
+
+function welcome(){
+  app.innerHTML='';
+  const w=el('div','panel');
+  w.style.marginTop='24px';w.style.alignItems='center';w.style.textAlign='center';
+  w.innerHTML=CROWN.replace('<svg','<svg class="big-crown"')+'<h1>Castillo de las Letras</h1><p>¡Hola! Soy el Hada Luma. Te voy a enseñar a leer con juegos, un poquito cada día.</p><p><b>¿Cómo se llama la princesa?</b></p><input class="name" id="nm" maxlength="16" autocomplete="off" aria-label="Nombre de la princesa"><button class="btn" id="go">¡Empezar!</button>';
+  app.appendChild(w);
+  $('#go').onclick=()=>{const v=$('#nm').value.trim();if(!v){$('#nm').classList.add('shake');setTimeout(()=>$('#nm').classList.remove('shake'),400);return;}P.name=v;save();say('Hola '+v+'. Vamos a leer.');home();};
+  $('#nm').onkeydown=e=>{if(e.key==='Enter')$('#go').click();};
+}
+
+let viewPart=0;
+const PARTS=[{n:'Parte 1',sub:'Primeras sílabas'},{n:'Parte 2',sub:'Letras que faltan'}];
+function home(){
+  if(!P.name)return welcome();
+  app.innerHTML='';
+  const ni=nextIdx(),nl=FLAT[ni],total=FLAT.length,dc=doneCount();
+  if(!viewPart)viewPart=REINOS[nl.ki].part;
+  const top=el('div','top');
+  top.innerHTML='<div class="brand">'+CROWN+'<h1>Castillo de las Letras</h1></div><div class="gems" aria-label="Gemas">💎 '+P.gems+'</div>';
+  app.appendChild(top);
+  if(!HAS_VOICE)app.appendChild(el('div','notice','Este navegador no tiene voz. Abre la página en Chrome o Safari para escuchar las sílabas.'));
+  const hero=el('div','hero');
+  const fin=dc>=total;
+  hero.innerHTML='<small>'+(fin?'¡Terminaste el camino!':REINOS[nl.ki].part===2?'Parte 2 · Hoy te toca, '+P.name:'Hoy te toca, '+P.name)+'</small><h2>'+(fin?'Princesa lectora':nl.t)+'</h2><small>'+(fin?'Repite los días que quieras.':'Unos 15 minutos de juegos y una misión.')+'</small><div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="'+total+'" aria-valuenow="'+dc+'"><i style="width:'+(dc/total*100)+'%"></i></div><small>'+dc+' de '+total+' días completados</small>';
+  const go=el('button','btn',fin?'Repasar':'¡Jugar!');go.onclick=()=>startLesson(ni);hero.appendChild(go);
+  app.appendChild(hero);
+  const tabs=el('div','tabs');tabs.setAttribute('role','tablist');
+  [1,2].forEach(pn=>{
+    const ls=FLAT.filter(l=>REINOS[l.ki].part===pn),dn=ls.filter(l=>P.done[l.id]).length;
+    const t=el('button','tab'+(viewPart===pn?' on':''),PARTS[pn-1].n+'<small>'+PARTS[pn-1].sub+' · '+dn+'/'+ls.length+'</small>');
+    t.setAttribute('role','tab');t.setAttribute('aria-selected',viewPart===pn);
+    t.onclick=()=>{viewPart=pn;home();};tabs.appendChild(t);
+  });
+  app.appendChild(tabs);
+  REINOS.forEach((k,ki)=>{
+    if(k.part!==viewPart)return;
+    const r=el('section','reino');r.innerHTML='<h3><i style="background:'+k.col+'"></i>'+k.n+'</h3>';
+    const g=el('div','grid');
+    k.ls.forEach((l,j)=>{
+      const i=KSTART[ki]+j,d=P.done[l.id],ok=unlocked(i);
+      const b=el('button','node'+(d?' done':'')+(i===ni&&!fin?' cur':'')+(ok?'':' lock'),'<span class="d">'+(i+1)+'</span>'+l.lab+'<small>'+(d?starStr(d):'')+'</small>');
+      b.style.setProperty('--c',k.col);b.setAttribute('aria-label','Día '+(i+1)+': '+l.t);
+      b.onclick=()=>{if(ok)startLesson(i);else{b.classList.add('shake');setTimeout(()=>b.classList.remove('shake'),400);}};
+      g.appendChild(b);
+    });
+    r.appendChild(g);app.appendChild(r);
+  });
+  const f=el('div','foot');const pb=el('button','btn alt sm','Para papá y mamá');pb.onclick=parent;f.appendChild(pb);app.appendChild(f);
+  window.scrollTo(0,0);
+}
+
+const videoQ=l=>l.type==='vowel'?'las vocales canción para niños':l.boss?'leer frases cortas para niños primer grado':'El Mono Sílabo '+l.sy.join(' ');
+const videoURL=l=>'https://www.youtube.com/results?search_query='+encodeURIComponent(videoQ(l));
+
+function makeCode(){
+  const o={v:1,n:P.name,g:P.gems,d:FLAT.map(l=>P.done[l.id]||0).join('')};
+  return 'CL1-'+btoa(unescape(encodeURIComponent(JSON.stringify(o)))).replace(/=+$/,'');
+}
+function applyCode(txt){
+  try{
+    let c=txt.trim().replace(/\s+/g,'');
+    if(!/^CL1-/.test(c))return 'El código debe empezar con CL1-';
+    c=c.slice(4);while(c.length%4)c+='=';
+    const o=JSON.parse(decodeURIComponent(escape(atob(c))));
+    if(!o||typeof o.d!=='string'||!/^[0-3]*$/.test(o.d))return 'El código no es válido.';
+    o.d.split('').forEach((ch,i)=>{const n=+ch;if(n>0&&FLAT[i])P.done[FLAT[i].id]=Math.max(P.done[FLAT[i].id]||0,n);});
+    P.gems=Math.max(P.gems,+o.g||0);if(!P.name&&o.n)P.name=String(o.n).slice(0,16);
+    save();return '';
+  }catch(e){return 'No pude leer ese código. Cópialo completo e inténtalo otra vez.';}
+}
+const RATES=[['Muy lenta',.5],['Lenta',.7],['Normal',.9]];
+
+function parent(){
+  app.innerHTML='';
+  const l=FLAT[nextIdx()];
+  const p=el('div','panel');
+  p.innerHTML='<h2>Para papá y mamá</h2>'+
+  '<p><b>Cómo usarlo</b></p><ul><li>Una sesión al día, unos 15 minutos. Si se cansa, paren y sigan mañana.</li><li>Cada pantalla le dice la instrucción en voz alta. El botón azul 🔊 la repite.</li><li>Si se equivoca, di «inténtalo otra vez». Celebra cada acierto.</li><li>La misión de cada día se hace fuera de la pantalla: es la parte que más ayuda a recordar.</li></ul>'+
+  '<p><b>Video de hoy ('+l.t+')</b></p><a class="btn alt sm" href="'+videoURL(l)+'" target="_blank" rel="noopener">Buscar en YouTube</a><p class="hint">Se abre YouTube con la búsqueda lista. Escoge un video corto y quédate cerca mientras lo ve.</p>'+
+  '<p><b>Voz</b></p><p class="hint">Si una voz no se entiende bien, prueba otra. Las voces dependen de tu teléfono y navegador.</p><div id="vl" style="display:flex;flex-direction:column;gap:8px"></div>'+
+  '<p><b>Velocidad</b></p><div class="row" id="rt"></div>'+
+  '<p><b>Pasar el avance a otro aparato</b></p><p class="hint">1. Copia este código. 2. Ábrelo en el otro aparato, en esta misma pantalla. 3. Pégalo abajo y toca Restaurar.</p><textarea class="code" id="cd" readonly aria-label="Código de respaldo"></textarea><div class="row"><button class="btn alt sm" id="cp">Copiar código</button></div><p id="cm" class="hint"></p><textarea class="code" id="pc" placeholder="Pega aquí el código del otro aparato" aria-label="Pegar código"></textarea><div class="row"><button class="btn alt sm" id="rs2">Restaurar progreso</button></div><p id="pm" class="hint"></p>'+
+  '<p><b>Ajustes</b></p><div class="row"><button class="btn alt sm" id="ua">'+(P.all?'Volver a bloquear días':'Desbloquear todos los días')+'</button><button class="btn alt sm" id="cn">Cambiar nombre</button><button class="btn alt sm" id="rs">Borrar progreso</button></div>'+
+  '<p class="hint">El avance se guarda en este aparato. Para usar otro, pasa el código de respaldo.</p><button class="btn" id="bk">Volver</button>';
+  app.appendChild(p);
+
+  function drawVoices(){
+    const box=$('#vl');if(!box)return;box.innerHTML='';
+    if(!HAS_VOICE){box.innerHTML='<p class="err-msg">Este navegador no tiene voz. Prueba con Chrome o Safari.</p>';return;}
+    const vs=esVoices();
+    const auto=el('div','vrow'+(P.voice?'':' on'),'<span><b>Automática</b>'+(VOICE?' ('+VOICE.name+')':'')+'</span>');
+    const ab=el('button','btn alt sm','Usar');ab.onclick=()=>{P.voice='';save();initVoice();say('Hola '+P.name+'. Esta es mi voz.');drawVoices();};auto.appendChild(ab);box.appendChild(auto);
+    if(!vs.length){box.appendChild(el('p','hint','No encontré voces en español. En iPhone: Ajustes, Accesibilidad, Contenido hablado, Voces. En Android: Ajustes, Idioma, Texto a voz.'));return;}
+    vs.forEach(v=>{
+      const r=el('div','vrow'+(P.voice===v.name?' on':''),'<span>'+v.name+' · '+v.lang+(P.voice===v.name?' ✓':'')+'</span>');
+      const t=el('button','btn alt sm','Probar');t.onclick=()=>{const u=mkUtter('Hola '+P.name+'. Ma, me, mi, mo, mu. Mamá, mimo.');u.voice=v;u.lang=v.lang;try{speechSynthesis.cancel();speechSynthesis.speak(u);}catch(e){}};
+      const u=el('button','btn sm','Usar');u.onclick=()=>{P.voice=v.name;save();initVoice();drawVoices();say('Esta voz se quedó.');};
+      r.appendChild(t);r.appendChild(u);box.appendChild(r);
+    });
+  }
+  drawVoices();voiceHook=()=>{if($('#vl'))drawVoices();};
+  RATES.forEach(rt=>{const b=el('button','btn sm'+(Math.abs((P.rate||.7)-rt[1])<.01?'':' alt'),rt[0]);b.onclick=()=>{P.rate=rt[1];save();say('Así suena esta velocidad. Ma, me, mi, mo, mu.');parent();};$('#rt').appendChild(b);});
+
+  $('#cd').value=makeCode();
+  $('#cp').onclick=async()=>{
+    const c=$('#cd').value;let ok=false;
+    try{await navigator.clipboard.writeText(c);ok=true;}catch(e){}
+    if(!ok){$('#cd').focus();$('#cd').select();try{ok=document.execCommand('copy');}catch(e){}}
+    $('#cm').className=ok?'ok-msg':'hint';$('#cm').textContent=ok?'Código copiado.':'No pude copiarlo solo. Mantén presionado el recuadro y elige Copiar.';
+  };
+  $('#rs2').onclick=()=>{const err=applyCode($('#pc').value);$('#pm').className=err?'err-msg':'ok-msg';$('#pm').textContent=err||'Listo. El avance se restauró.';if(!err)setTimeout(home,900);};
+  $('#ua').onclick=()=>{P.all=!P.all;save();parent();};
+  $('#cn').onclick=()=>{P.name='';save();welcome();};
+  let armed=false;
+  $('#rs').onclick=function(){if(!armed){armed=true;this.textContent='Toca otra vez para borrar';return;}P={name:P.name,done:{},gems:0,all:false,voice:P.voice,rate:P.rate};save();home();};
+  $('#bk').onclick=()=>{voiceHook=null;home();};
+  window.scrollTo(0,0);
+}
+
+/* ---------- Lección ---------- */
+let L=null,ctx=null,stage=null;
+function startLesson(i){
+  L=FLAT[i];viewPart=REINOS[L.ki].part;ctx={i,res:[],step:0,mission:false};
+  const pool=poolFor(i);let st;
+  if(L.type==='vowel')st=['warm','listen','initial','memory','mission'];
+  else if(L.boss)st=['listen','build','read','story','mission'];
+  else{st=['warm','listen','combine'];if(pool.length>=2)st.push('build');if(pool.length>=1)st.push('read');st.push('mission');}
+  ctx.steps=st;ctx.pool=pool;
+  shell();runStep();
+}
+function shell(){
+  app.innerHTML='';
+  const bar=el('div','lessonbar');
+  const bk=el('button','back','←');bk.setAttribute('aria-label','Volver al mapa');bk.onclick=()=>{try{speechSynthesis.cancel();}catch(e){}home();};
+  bar.appendChild(bk);bar.appendChild(el('div','dots',ctx.steps.map(()=>'<i></i>').join('')));bar.appendChild(el('span','lt',L.t));
+  app.appendChild(bar);
+  stage=el('div','stage');stage.id='stage';app.appendChild(stage);
+  stage.addEventListener('click',e=>{if(e.target.closest('.ask')&&ctx&&ctx.cur)say(instrText(ctx.cur));});
+  window.scrollTo(0,0);
+}
+function dots(){document.querySelectorAll('.dots i').forEach((d,i)=>{d.className=i<ctx.step?'on':i===ctx.step?'now':'';});}
+function stars(m,n){const r=m/n;return r<=.2?3:r<=.6?2:1;}
+function nextStep(m,n){if(m!=null)ctx.res.push(stars(m,n));ctx.step++;runStep();}
+const INSTR={
+ warm:'Toca cada tarjeta y escucha cómo suena. Cuando termines, toca el botón verde.',
+ listen:'Escucha el sonido. Toca la tarjeta que suena igual.',
+ combine:'Escucha la sílaba. Toca la vocal que falta para completarla.',
+ initial:'Mira el dibujo. Toca la vocal con la que empieza su nombre.',
+ memory:'Toca dos cartas. Si son la misma vocal, una grande y una pequeña, se quedan abiertas.',
+ build:'Mira el dibujo. Toca las sílabas en orden para armar la palabra.',
+ read:'Lee la palabra. Toca el dibujo que le corresponde. Si necesitas ayuda, toca el altavoz.',
+ story:'Lee cada frase tú sola. Toca el altavoz de cada frase para comprobar.',
+ mission:()=>'Esta es tu misión. '+missionText()+' Cuando la cumplas, toca el botón.'
+};
+const instrText=k=>{const v=INSTR[k];return typeof v==='function'?v():v;};
+function runStep(){
+  dots();stage.innerHTML='';stage.className='stage';
+  const s=ctx.steps[ctx.step];
+  if(!s)return finish();
+  ctx.cur=s;ctx.intro=instrText(s);
+  ({warm:gWarm,listen:gListen,combine:gCombine,initial:gInitial,memory:gMemory,build:gBuild,read:gRead,story:gStory,mission:gMission})[s](nextStep);
+  if(!['listen','combine','initial','build'].includes(s)){const i=ctx.intro;ctx.intro=null;setTimeout(()=>say(i),250);}
+  window.scrollTo(0,0);
+}
+const ASK='<button class="ask" aria-label="Escuchar la instrucción">🔊</button>';
+const head=(t,r,n)=>'<div class="gh">'+ASK+'<span class="gt">'+t+'</span><span class="gr">'+(r+1)+' de '+n+'</span></div>';
+const seqWords=n=>{const p=ctx.pool,k=p.neuN||p.length;const base=shuffle(p.slice(0,k)).concat(shuffle(p.slice(k)));const out=[];for(let i=0;i<n;i++)out.push(base[i%base.length]);return out;};
+
+/* Calentamiento */
+function gWarm(done){
+  stage.innerHTML='<div class="gh">'+ASK+'<span class="gt">Calentamiento</span></div><p class="hint">Toca cada tarjeta y escucha cómo suena.</p><div class="tiles" id="tw"></div><div class="row"><a class="btn alt sm" href="'+videoURL(L)+'" target="_blank" rel="noopener">Ver un video (opcional)</a></div><button class="btn mint" id="nx">¡A jugar!</button>';
+  L.sy.forEach(s=>{const b=el('button','tile',s);b.onclick=()=>{say(s);b.classList.add('sel');b.classList.remove('pop');void b.offsetWidth;b.classList.add('pop');};$('#tw').appendChild(b);});
+  $('#nx').onclick=()=>done();
+}
+
+/* Escucha y toca */
+function gListen(done){
+  const pool=L.sy.slice(),n=L.boss?6:5,nopt=L.boss?4:3;let r=0,m=0,last=null;
+  const known=[...KNOWN[ctx.i]];
+  (function round(){
+    if(r>=n)return done(m,n);
+    let t;do{t=rnd(pool);}while(t===last&&pool.length>1);last=t;
+    const others=shuffle(pool.filter(x=>x!==t));
+    const extra=shuffle(known.filter(x=>x!==t&&!pool.includes(x)));
+    const opts=shuffle([t].concat(others.concat(extra).slice(0,nopt-1)));
+    stage.innerHTML=head('Escucha y toca la sílaba',r,n)+'<button class="spk" id="spk">🔊 Escuchar otra vez</button><div class="tiles" id="tt"></div><p class="fb" id="fb"></p>';
+    let ok=false;
+    opts.forEach(o=>{const b=el('button','tile',o);b.onclick=()=>{
+      if(ok)return;
+      if(o===t){ok=true;b.classList.add('good');fb(rnd(PRAISE));say(t);burst(6);r++;setTimeout(()=>{if(stage.isConnected)round();},1200);}
+      else{m++;b.classList.add('shake');setTimeout(()=>b.classList.remove('shake'),400);fb('Casi. Escucha otra vez.');say(t);}
+    };$('#tt').appendChild(b);});
+    $('#spk').onclick=()=>say(t);
+    setTimeout(()=>speakFirst(t),250);
+  })();
+}
+
+/* Une la letra con la vocal */
+function gCombine(done){
+  const n=4,c=L.c;let r=0,m=0,last=null;
+  const vs=L.sy.map(s=>s.slice(c.length));
+  (function round(){
+    if(r>=n)return done(m,n);
+    let t;do{t=rnd(L.sy);}while(t===last&&L.sy.length>1);last=t;const v=t.slice(c.length);
+    stage.innerHTML=head('Une la letra con la vocal',r,n)+'<button class="spk" id="spk">🔊 Escuchar</button><div class="eq"><span class="tile fix">'+c+'</span><b>+</b><span class="tile slot" id="sv">?</span><b>=</b><span class="tile slot" id="sr">?</span></div><p class="hint">¿Qué vocal falta?</p><div class="tiles" id="tt"></div><p class="fb" id="fb"></p>';
+    let ok=false;
+    shuffle(vs).forEach(o=>{const b=el('button','tile',o);b.onclick=()=>{
+      if(ok)return;
+      if(o===v){ok=true;b.classList.add('good');$('#sv').textContent=v;$('#sv').classList.add('filled');$('#sr').textContent=t;$('#sr').classList.add('filled');fb(rnd(PRAISE));say(t);burst(6);r++;setTimeout(()=>{if(stage.isConnected)round();},1500);}
+      else{m++;b.classList.add('shake');setTimeout(()=>b.classList.remove('shake'),400);fb('Casi. Escucha otra vez.');say(t);}
+    };$('#tt').appendChild(b);});
+    $('#spk').onclick=()=>say(t);
+    setTimeout(()=>speakFirst(t),250);
+  })();
+}
+
+/* ¿Con qué vocal empieza? */
+function gInitial(done){
+  const items=shuffle(INIT).slice(0,5),n=items.length;let r=0,m=0;
+  (function round(){
+    if(r>=n)return done(m,n);
+    const it=items[r];
+    stage.innerHTML=head('¿Con qué vocal empieza?',r,n)+'<div class="pic">'+it.e+'</div><button class="spk" id="spk">🔊 Escuchar</button><div class="tiles" id="tt"></div><p class="fb" id="fb"></p>';
+    let ok=false;
+    shuffle(VOW).slice(0,5).forEach(o=>{const b=el('button','tile',o);b.onclick=()=>{
+      if(ok)return;
+      if(o===it.v){ok=true;b.classList.add('good');fb(rnd(PRAISE));say(it.w);burst(6);r++;setTimeout(()=>{if(stage.isConnected)round();},1500);}
+      else{m++;b.classList.add('shake');setTimeout(()=>b.classList.remove('shake'),400);fb('Casi. Escucha otra vez.');say(it.w);}
+    };$('#tt').appendChild(b);});
+    $('#spk').onclick=()=>say(it.w);
+    setTimeout(()=>speakFirst(it.w),250);
+  })();
+}
+
+/* Memoria de vocales */
+function gMemory(done){
+  stage.innerHTML='<div class="gh">'+ASK+'<span class="gt">Encuentra las parejas</span></div><p class="hint">Cada vocal tiene una mayúscula y una minúscula.</p><div class="mem" id="mm"></div><p class="fb" id="fb"></p>';
+  const cards=shuffle(VOW.flatMap(v=>[{k:v,t:v.toUpperCase()},{k:v,t:v}]));
+  let open=[],lock=false,matched=0,m=0;
+  cards.forEach(c=>{
+    const b=el('button','card','?');b.setAttribute('aria-label','Carta');
+    b.onclick=()=>{
+      if(lock||open.includes(b)||b.classList.contains('ok'))return;
+      b.textContent=c.t;b.classList.add('up');say(c.k);open.push(b);b._c=c;
+      if(open.length===2){
+        const [x,y]=open;
+        if(x._c.k===y._c.k){x.classList.add('ok');y.classList.add('ok');open=[];matched++;fb(rnd(PRAISE));burst(5);
+          if(matched===VOW.length)setTimeout(()=>{if(stage.isConnected)done(Math.max(0,m-3),5);},1400);}
+        else{m++;lock=true;setTimeout(()=>{[x,y].forEach(z=>{z.textContent='?';z.classList.remove('up');});open=[];lock=false;},900);}
+      }
+    };
+    $('#mm').appendChild(b);
+  });
+}
+
+/* Arma la palabra */
+function gBuild(done){
+  const n=L.boss?4:3,items=seqWords(n);let r=0,m=0;
+  const known=[...KNOWN[ctx.i]];
+  (function round(){
+    if(r>=n)return done(m,n);
+    const w=items[r],plain=w.s.map(nz);
+    const dis=shuffle(known.filter(x=>x.length>1&&!plain.includes(x))).slice(0,2);
+    const tiles=shuffle(w.s.concat(dis));
+    stage.innerHTML=head('Arma la palabra',r,n)+'<div class="pic">'+w.e+'</div><button class="spk" id="spk">🔊 Escuchar</button><div class="slots" id="sl">'+w.s.map(()=>'<span class="tile slot">·</span>').join('')+'</div><div class="tiles" id="tt"></div><p class="fb" id="fb"></p>';
+    const slots=[...document.querySelectorAll('#sl .slot')];let pos=0;
+    tiles.forEach(t=>{const b=el('button','tile',t);b.onclick=()=>{
+      if(b.disabled||pos>=w.s.length)return;
+      if(t===w.s[pos]){slots[pos].textContent=t;slots[pos].classList.add('filled');b.disabled=true;b.classList.add('used');say(t);pos++;
+        if(pos===w.s.length){r++;fb('¡'+w.w+'!');burst(8);setTimeout(()=>say(w.w,.95),500);setTimeout(()=>{if(stage.isConnected)round();},2400);}}
+      else{m++;b.classList.add('shake');setTimeout(()=>b.classList.remove('shake'),400);fb('Casi. Escucha otra vez.');}
+    };$('#tt').appendChild(b);});
+    $('#spk').onclick=()=>say(w.w,.95);
+    setTimeout(()=>speakFirst(w.w,.95),250);
+  })();
+}
+
+/* Lee y busca el dibujo */
+function gRead(done){
+  const n=L.boss?6:4,items=seqWords(n);let r=0,m=0;
+  (function round(){
+    if(r>=n)return done(m,n);
+    const w=items[r];
+    const others=shuffle(WORDS.filter(x=>x.w!==w.w&&x.e!==w.e)).slice(0,2);
+    stage.innerHTML=head('Lee la palabra y toca el dibujo',r,n)+'<div class="word">'+w.s.map((s,i)=>'<span class="sy c'+(i%2)+'">'+s+'</span>').join('')+'</div><button class="spk" id="spk">🔊 Comprobar</button><div class="opts" id="oo"></div><p class="fb" id="fb"></p>';
+    let ok=false;
+    shuffle([w].concat(others)).forEach(o=>{const b=el('button','opt',o.e);b.setAttribute('aria-label','Dibujo');b.onclick=()=>{
+      if(ok)return;
+      if(o===w){ok=true;b.classList.add('good');fb(rnd(PRAISE));say(w.w,.95);burst(8);r++;setTimeout(()=>{if(stage.isConnected)round();},1800);}
+      else{m++;b.classList.add('shake');setTimeout(()=>b.classList.remove('shake'),400);fb('Casi. Léela otra vez.');}
+    };$('#oo').appendChild(b);});
+    $('#spk').onclick=()=>say(w.w,.95);
+  })();
+}
+
+/* Cuento corto */
+function gStory(done){
+  stage.innerHTML='<div class="gh">'+ASK+'<span class="gt">Tu cuento</span></div><p class="hint">Léelo tú primero. Toca 🔊 para comprobar.</p><div id="ln" style="width:100%;display:flex;flex-direction:column;gap:10px"></div><button class="btn mint" id="nx">¡Lo leí!</button>';
+  L.story.forEach(t=>{const d=el('div','line','<span>'+t+'</span>');const b=el('button',null,'🔊');b.setAttribute('aria-label','Escuchar');b.onclick=()=>say(t);d.appendChild(b);$('#ln').appendChild(d);});
+  $('#nx').onclick=()=>{burst(14);say('¡Qué bien lees, '+P.name+'!');setTimeout(()=>done(0,1),900);};
+}
+
+/* Misión */
+function missionText(){
+  if(L.type==='vowel')return 'Busca en casa 3 cosas que empiecen con A, E, I, O o U. Dile sus nombres a mamá o papá.';
+  if(L.boss)return 'Dibuja tu palabra favorita de este reino y escribe su nombre debajo. Luego léesela a alguien de tu familia.';
+  return 'Busca en casa 2 cosas que tengan '+L.sy.slice(0,3).join(', ')+' en el nombre. Dibuja una y escribe la sílaba.';
+}
+function gMission(){
+  stage.innerHTML='<div class="gh">'+ASK+'<span class="gt">Misión de princesa</span></div><div class="mission">'+missionText()+'</div><p class="hint">Cuando la cumplas, toca el botón y gana una gema.</p><button class="btn" id="mc">Misión cumplida 💎</button><button class="btn alt sm" id="sk">Hoy no, terminar</button>';
+  $('#mc').onclick=()=>{ctx.mission=true;burst(10);finish();};
+  $('#sk').onclick=()=>finish();
+}
+
+/* Premio */
+function finish(){
+  const avg=ctx.res.length?ctx.res.reduce((a,b)=>a+b,0)/ctx.res.length:3;
+  const st=Math.max(1,Math.min(3,Math.round(avg)));
+  const first=!P.done[L.id];
+  P.done[L.id]=Math.max(P.done[L.id]||0,st);
+  const gain=st+(ctx.mission?1:0);P.gems+=gain;save();
+  const last=ctx.i===FLAT.length-1;
+  shell();dots();
+  document.querySelectorAll('.dots i').forEach(d=>d.className='on');
+  stage.innerHTML='<h2>'+(last?'¡Princesa lectora!':'¡Lo lograste, '+P.name+'!')+'</h2><div class="stars" aria-label="'+st+' de 3 estrellas">'+'★'.repeat(st)+'<span class="off">'+'★'.repeat(3-st)+'</span></div><p>Ganaste <b>'+gain+' 💎</b>'+(ctx.mission?' (con la misión)':'')+'.</p><p class="hint">'+(last?'Completaste todo el camino. Pídele a papá o mamá que te prepare las próximas letras.':first?'Mañana te espera el siguiente día.':'Repasar también te hace más fuerte.')+'</p>';
+  const b=el('button','btn','Ver el mapa');b.onclick=home;stage.appendChild(b);
+  burst(24);say(last?'Eres una princesa lectora':'Lo lograste, '+P.name);
+}
+
+home();
+</script>
+</body>
+</html>
