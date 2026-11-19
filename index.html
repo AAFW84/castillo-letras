@@ -240,6 +240,8 @@ function el(t,c,h){const e=document.createElement(t);if(c)e.className=c;if(h!=nu
 function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]];}return a;}
 const fb=t=>{const f=$('#fb');if(f)f.textContent=t;};
 const rnd=a=>a[Math.random()*a.length|0];
+/* Mazo: reparte todas las sílabas barajadas antes de repetir alguna */
+function deck(pool){let q=[],last=null;return()=>{if(!q.length){q=shuffle(pool);if(q.length>1&&q[0]===last)q.push(q.shift());}last=q.shift();return last;};}
 const CROWN='<svg viewBox="0 0 64 48" aria-hidden="true"><path d="M6 40 L10 12 L24 26 L32 8 L40 26 L54 12 L58 40 Z" fill="#F5B52E" stroke="#B9801A" stroke-width="3" stroke-linejoin="round"/><circle cx="10" cy="10" r="4" fill="#E0457B"/><circle cx="32" cy="6" r="4" fill="#6C63F0"/><circle cx="54" cy="10" r="4" fill="#2FB890"/><rect x="6" y="40" width="52" height="6" rx="3" fill="#B9801A"/></svg>';
 
 /* ---------- Progreso guardado ---------- */
@@ -455,11 +457,11 @@ function gWarm(done){
 
 /* Escucha y toca */
 function gListen(done){
-  const pool=L.sy.slice(),n=L.boss?6:5,nopt=L.boss?4:3;let r=0,m=0,last=null;
+  const pool=L.sy.slice(),n=L.boss?6:5,nopt=L.boss?4:3;let r=0,m=0;const draw=deck(pool);
   const known=[...KNOWN[ctx.i]];
   (function round(){
     if(r>=n)return done(m,n);
-    let t;do{t=rnd(pool);}while(t===last&&pool.length>1);last=t;
+    const t=draw();
     const others=shuffle(pool.filter(x=>x!==t));
     const extra=shuffle(known.filter(x=>x!==t&&!pool.includes(x)));
     const opts=shuffle([t].concat(others.concat(extra).slice(0,nopt-1)));
@@ -477,11 +479,11 @@ function gListen(done){
 
 /* Une la letra con la vocal */
 function gCombine(done){
-  const n=4,c=L.c;let r=0,m=0,last=null;
+  const n=4,c=L.c;let r=0,m=0;const draw=deck(L.sy);
   const vs=L.sy.map(s=>s.slice(c.length));
   (function round(){
     if(r>=n)return done(m,n);
-    let t;do{t=rnd(L.sy);}while(t===last&&L.sy.length>1);last=t;const v=t.slice(c.length);
+    const t=draw(),v=t.slice(c.length);
     stage.innerHTML=head('Une la letra con la vocal',r,n)+'<button class="spk" id="spk">🔊 Escuchar</button><div class="eq"><span class="tile fix">'+c+'</span><b>+</b><span class="tile slot" id="sv">?</span><b>=</b><span class="tile slot" id="sr">?</span></div><p class="hint">¿Qué vocal falta?</p><div class="tiles" id="tt"></div><p class="fb" id="fb"></p>';
     let ok=false;
     shuffle(vs).forEach(o=>{const b=el('button','tile',o);b.onclick=()=>{
