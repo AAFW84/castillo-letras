@@ -895,14 +895,37 @@ async function snap(){
 
 /* ---------- Música, sonidos, racha y estadísticas ---------- */
 function ensureAC(){AC=AC||new (window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume();return AC;}
-function tone(f,t0,dur,vol,type){try{const a=ensureAC(),o=a.createOscillator(),g=a.createGain();o.type=type||'sine';o.frequency.value=f;const t=a.currentTime+t0;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+.03);g.gain.exponentialRampToValueAtTime(.0008,t+dur);o.connect(g);g.connect(a.destination);o.start(t);o.stop(t+dur+.05);}catch(e){}}
-let MUS=null;
+function tone(f,t0,dur,vol,type,dest){try{const a=ensureAC(),o=a.createOscillator(),g=a.createGain();o.type=type||'sine';o.frequency.value=f;const t=a.currentTime+t0;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+.03);g.gain.exponentialRampToValueAtTime(.0008,t+dur);o.connect(g);g.connect(dest||a.destination);o.start(t);o.stop(t+dur+.05);}catch(e){}}
+let MUS=null,MG=null;
+function musicOff(){
+  if(MUS){clearInterval(MUS);MUS=null;}
+  try{if(MG&&AC){MG.gain.cancelScheduledValues(AC.currentTime);MG.gain.setValueAtTime(0,AC.currentTime);}}catch(e){}
+}
 function musicSync(){try{
-  if(P.music&&!MUS){ensureAC();const n=[262,294,330,392,440,523,588,660];let last=0;
-    MUS=setInterval(()=>{try{if(AC&&AC.state==='suspended')AC.resume();if(HAS_VOICE&&speechSynthesis.speaking)return;let k;do{k=Math.random()*n.length|0;}while(k===last);last=k;tone(n[k],0,1.8,.03,'sine');}catch(e){}},1300);}
-  else if(!P.music&&MUS){clearInterval(MUS);MUS=null;}
+  const want=P.music&&!document.hidden;
+  if(want&&!MUS){
+    const a=ensureAC();
+    if(!MG){MG=a.createGain();MG.connect(a.destination);}
+    MG.gain.cancelScheduledValues(a.currentTime);MG.gain.setValueAtTime(1,a.currentTime);
+    const n=[262,294,330,392,440,523,588,660];let last=0;
+    MUS=setInterval(()=>{try{
+      if(!P.music||document.hidden){musicOff();return;}
+      if(AC&&AC.state==='suspended')AC.resume();
+      if(HAS_VOICE&&speechSynthesis.speaking)return;
+      let k;do{k=Math.random()*n.length|0;}while(k===last);last=k;tone(n[k],0,1.8,.03,'sine',MG);
+    }catch(e){}},1300);
+  }else if(!want)musicOff();
 }catch(e){}}
+function musicBtn(cls){
+  const b=el('button',cls||'back',P.music?'🎵':'🔇');
+  b.setAttribute('aria-label',P.music?'Apagar música':'Prender música');
+  b.onclick=()=>{P.music=!P.music;save();musicSync();document.querySelectorAll('.mus-btn').forEach(x=>{x.textContent=P.music?'🎵':'🔇';x.setAttribute('aria-label',P.music?'Apagar música':'Prender música');});};
+  b.classList.add('mus-btn');return b;
+}
 document.addEventListener('pointerdown',()=>{if(P.music&&!MUS)musicSync();},{passive:true});
+document.addEventListener('visibilitychange',musicSync);
+window.addEventListener('pagehide',musicOff);
+window.addEventListener('storage',e=>{if(e.key!==KEY||!e.newValue)return;try{const o=JSON.parse(e.newValue);if(typeof o.music==='boolean'&&o.music!==P.music){P.music=o.music;musicSync();document.querySelectorAll('.mus-btn').forEach(x=>{x.textContent=P.music?'🎵':'🔇';});}}catch(_){}});
 const fmtD=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 const today=()=>fmtD(new Date());
 function streak(){let n=0;const d=new Date();if(!P.days[fmtD(d)])d.setDate(d.getDate()-1);while(P.days[fmtD(d)]){n++;d.setDate(d.getDate()-1);}return n;}
@@ -958,7 +981,7 @@ function sub(title,extra){
   if(typeof stopLife==='function')stopLife();
   app.innerHTML='';
   const t=el('div','top','<button class="back" aria-label="Volver">←</button><h2 style="flex:1;margin-left:10px">'+title+'</h2>'+(extra||''));
-  t.querySelector('.back').onclick=home;app.appendChild(t);window.scrollTo(0,0);
+  t.querySelector('.back').onclick=home;const mb=musicBtn('back');mb.style.marginLeft='8px';t.appendChild(mb);app.appendChild(t);window.scrollTo(0,0);
 }
 
 function welcome(){
@@ -983,7 +1006,7 @@ function home(){
   const top=el('div','top');
   top.innerHTML='<div class="brand">'+CROWN+'<h1>Castillo de las Letras</h1></div>';
   const rt=el('div','row');rt.style.flexWrap='nowrap';rt.style.gap='6px';
-  const mb=el('button','gems',P.music?'🎵':'🔇');mb.setAttribute('aria-label','Música');mb.onclick=()=>{P.music=!P.music;save();musicSync();mb.textContent=P.music?'🎵':'🔇';};
+  const mb=musicBtn('gems');
   const gb=el('button','gems','💎 '+P.gems);gb.setAttribute('aria-label','Mi castillo');gb.onclick=castle;
   rt.appendChild(mb);rt.appendChild(gb);top.appendChild(rt);app.appendChild(top);
   if(!HAS_VOICE)app.appendChild(el('div','notice','Este navegador no tiene voz. Abre la página en Chrome o Safari para escuchar las sílabas.'));
@@ -1230,7 +1253,7 @@ function shell(){
   const bk=el('button','back','←');bk.setAttribute('aria-label','Volver al mapa');bk.onclick=()=>{try{speechSynthesis.cancel();}catch(e){}home();};
   bar.appendChild(bk);bar.appendChild(el('div','dots',ctx.steps.map(()=>'<i></i>').join('')));
   const pe=petEmoji();if(pe)bar.appendChild(el('span','pet',pe));
-  const mb=el('button','back',P.music?'🎵':'🔇');mb.setAttribute('aria-label','Música');mb.onclick=()=>{P.music=!P.music;save();musicSync();mb.textContent=P.music?'🎵':'🔇';};
+  const mb=musicBtn('back');
   bar.appendChild(mb);app.appendChild(bar);
   app.appendChild(el('div','lt',L.t));
   stage=el('div','stage');stage.id='stage';app.appendChild(stage);
